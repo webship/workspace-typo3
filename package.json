@@ -1,0 +1,75 @@
+{
+  "name": "@webship.co/workspace-typo3",
+  "version": "1.0.7",
+  "description": "TYPO3 for Webship Workspace: the builder (`cmd-typo3-project.sh`) and the typo3 console tool in every sites folder, the default accounts, the TYPO3 step pack wired into the testing setup, and two AI agents in the AI Agents folder.",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webship/workspace-typo3.git"
+  },
+  "files": [
+    "dist/src",
+    "agents",
+    "commands",
+    "features",
+    "scripts",
+    "testing",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "test": "npm run build && node --test dist/tests/*.test.js",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "workspacePlugin": {
+    "name": "typo3",
+    "label": "TYPO3",
+    "commands": {
+      "types": [
+        "sites"
+      ],
+      "workspaces": [
+        "dev",
+        "test",
+        "sandboxes",
+        "demos"
+      ],
+      "files": [
+        "commands/cmd-typo3-project.sh",
+        "commands/cmd-tools-typo3-cli.sh"
+      ]
+    },
+    "scripts": {
+      "functions": [
+        "scripts/functions/fun-typo3.sh"
+      ],
+      "args": [
+        "scripts/args/arg-typo3.sh",
+        "scripts/args/arg-typo3-cli.sh"
+      ],
+      "machine": [
+        "testing/site.feature"
+      ]
+    },
+    "ai": {
+      "agents": [
+        "agents/typo3-site-builder.md",
+        "agents/typo3-tester.md"
+      ]
+    },
+    "features": [
+      "features/typo3.feature"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@webship.co/workspace-plugin-api": "^1.0.7",
+    "typescript": "^5.9.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
