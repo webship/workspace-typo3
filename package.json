@@ -27,6 +27,15 @@
   "workspacePlugin": {
     "name": "typo3",
     "label": "TYPO3",
+    "needs": [
+      [
+        "dev",
+        "test",
+        "sandboxes",
+        "demos"
+      ],
+      "ai-agents"
+    ],
     "commands": {
       "types": [
         "sites"

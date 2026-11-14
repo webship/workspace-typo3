@@ -30,6 +30,24 @@ installed into `~/.claude/agents` from there like any other agent.
 
 It needs a Webship Workspace 1.0.7 or later.
 
+## What it needs
+
+A workspace starts empty, so the manifest says what else this plugin needs (`needs`):
+
+- one sites folder, for the builder and the tool: `dev`, `test`, `sandboxes`, `demos` (`dev` is the one added when none is there). The folder also carries `cmd-tools-testing.sh` and the Users tools this plugin's hooks answer to.
+- `ai-agents`, the AI Agents folder its two agents are placed in.
+
+`--require` says so, `--activate` and `--install` stop until the workspace has them, and `--with-needs` adds what is missing first:
+
+```bash
+bash core/scripts/plugins.sh --activate typo3 --with-needs   # dev and ai-agents are required, activated and installed first
+bash core/scripts/plugins.sh --install typo3
+```
+
+Everything the builder runs for a site runs in the site's own container, through the container tool the workspace already needs; the plugin asks for no command of its own on the machine.
+
+A workspace that knows none of this (Webship Workspace 1.0.8 and older) ignores the keys: add a sites folder and the AI Agents folder yourself, then `--install typo3` again.
+
 ## What the package holds
 
 | Path | What it is |
