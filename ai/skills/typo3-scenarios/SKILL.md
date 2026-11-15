@@ -168,8 +168,9 @@ landmarks and accessibility audits are used as they are and never redefined for 
   there.
 - **`admin` is an administrator and not a system maintainer**: no Extensions module and no Admin
   Tools. A scenario about those needs another account, asked for, not made.
-- **One phrase of the pack names the platform** (the "running" check). It breaks the rule below:
-  leave it out of a suite, and read the version with `bash cmd-tools-typo3-cli.sh <site>`.
+- **The generator is a value of a step**, not a part of its phrase: `the page generator should
+  start with "TYPO3"`, `the page generator should be "TYPO3 CMS"`. The meta tag carries no
+  version: read the version with `bash cmd-tools-typo3-cli.sh <site>`.
 - A scenario that failed after it created a page left it behind: start the scenario with
   `Given there is no "<path>" page`, so the next run clears it.
 

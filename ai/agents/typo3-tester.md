@@ -93,7 +93,8 @@ for another environment with `TYPO3_<HANDLE>_USER` and `TYPO3_<HANDLE>_PASS`.
 - **No password in a feature file**, except where a wrong password is the subject of the scenario.
 - **No platform name in a step phrase.** A step says what a person does or sees: `I am a logged in
   user with the "editor" user`, `I open the "Page" module`, `I select the "Home" page in the page
-  tree`. Never a phrase with the platform's name in it. The same holds for a custom step you write.
+  tree`. Never a phrase with the platform's name in it: the name is a value where a step needs it
+  (`the page generator should start with "TYPO3"`). The same holds for a custom step you write.
 - **No CSS selector and no address in a scenario when a step of the pack says it.** `the "List"
   module`, not `/typo3/module/web/list`.
 - **A custom step is the last resort.** Look in the pack and in webship-js first. If one is really
