@@ -73,7 +73,7 @@ test('the testing hook adds the step pack, the users registry and a first featur
   const r = run();
   assert.strictEqual(r.status, 0, r.stderr + r.stdout);
   const pkg = JSON.parse(fs.readFileSync(path.join(p.dir, 'package.json'), 'utf8'));
-  assert.strictEqual(pkg.devDependencies['@webship-js/typo3-steps'], '^2.1.0');
+  assert.strictEqual(pkg.devDependencies['@webship-js/typo3-steps'], '^2.2.0');
   assert.strictEqual(pkg.devDependencies['webship-js'], '^2.0.6', 'what was there stays');
   const cucumber = fs.readFileSync(path.join(p.dir, 'cucumber.js'), 'utf8');
   const lines = cucumber.split('\n');

@@ -1,4 +1,4 @@
-# @webship-js/typo3-steps 2.1.0 and webship-js 2.0.10
+# @webship-js/typo3-steps 2.2.0 and webship-js 2.0.10
 ^a (GET|POST|PUT|PATCH|DELETE) request to "([^"]*)" should have been made$
 ^all cookies are cleared$
 ^a request to "([^"]*)" should have been made$
@@ -314,6 +314,7 @@
 ^the "([^"]*)?" module should( not)* be active$
 ^the network is offline$
 ^the network is online$
+^(?:the )?page generator should( not)* (be|start with|contain) "([^"]*)"$
 ^the page language should be "([^"]*)"$
 ^the page should declare a language$
 ^the page should have a main landmark$
@@ -341,7 +342,6 @@
 ^(the )*response status code should( not)* be (\d+)$
 ^(?:the )?session storage "([^"]*)" is removed$
 ^(?:the )?session storage "([^"]*)" is set to "([^"]*)"$
-^the site should( not)* be running TYPO3(?: CMS)?$
 ^the system time is "([^"]*)"$
 ^the URL "([^"]*)" is blocked$
 ^the URL "([^"]*)" is delayed by (\d+) ?ms$

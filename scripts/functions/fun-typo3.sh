@@ -16,7 +16,7 @@
 
 # The step pack a TYPO3 project is tested with, and the release line it is required at.
 readonly TYPO3_STEPS_PACKAGE='@webship-js/typo3-steps';
-readonly TYPO3_STEPS_VERSION='^2.1.0';
+readonly TYPO3_STEPS_VERSION='^2.2.0';
 
 # The backend group the editor account joins: the one the Introduction package brings.
 readonly TYPO3_EDITOR_GROUP='Advanced editors';
