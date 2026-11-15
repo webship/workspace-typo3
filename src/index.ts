@@ -3,8 +3,10 @@
  *
  * What the package carries is placed by the installer from the manifest: the builder and the
  * typo3 console tool in the sites folders, their functions and argparse under core/scripts/plugins/typo3/,
- * the agents in the AI Agents folder. The dashboard needs nothing drawn for it: the builder is in the
- * Build list because it is a cmd-*-project.sh, the row menus are the core's, the agents are listed
+ * its AI items (ai/ in this package) in the folder of their kind:
+ * the agents in AI Agents, the skill in AI Skills, the command in AI Commands, the prompt in AI Prompts.
+ * The dashboard needs nothing drawn for it: the builder is in the
+ * Build list because it is a cmd-*-project.sh, the row menus are the core's, the AI items are listed
  * like any other. What register() adds is what the assistant is told.
  *
  * Everything the dashboard is asked for goes through `api`; this package requires nothing from the
@@ -22,6 +24,15 @@ export const COMMANDS = ['cmd-typo3-project.sh', 'cmd-tools-typo3-cli.sh'];
 /** The agents the installer places in the AI Agents folder. */
 export const AGENTS = ['typo3-site-builder', 'typo3-tester'];
 
+/** The skill the installer places in the AI Skills folder (a folder each, with its SKILL.md). */
+export const SKILLS = ['typo3-scenarios'];
+
+/** The slash command the installer places in the AI Commands folder. */
+export const AI_COMMANDS = ['typo3-test'];
+
+/** The prompt the installer places in the AI Prompts folder: each a whole launch command for a new session. */
+export const PROMPTS = ['typo3-build-and-test'];
+
 /** What the assistant is told about TYPO3 in this workspace. */
 export function assistantContext(): string {
   return [
@@ -33,6 +44,8 @@ export function assistantContext(): string {
     '`--update` updates the Composer packages, `--flush` flushes the caches, `--add-users` adds the default accounts (an administrator and an editor).',
     '`bash cmd-tools-testing.sh <name>` sets up webship-js with the TYPO3 step pack; `--run` runs the suite.',
     `For TYPO3 work, hand over to the agents ${AGENTS.map((a) => `\`${a}\``).join(' and ')}.`,
+    `The plugin also places the skill ${SKILLS.map((a) => `\`${a}\``).join(', ')} (the step pack's phrases, by area) in ai-skills/,`,
+    `the command ${AI_COMMANDS.map((a) => `\`/${a} <site>\``).join(', ')} in ai-commands/ and the prompt ${PROMPTS.map((a) => `\`${a}\``).join(' and ')} in ai-prompts/.`,
     'Never run php, composer, npm or mysql on the host for a project.',
   ].join(' ');
 }
