@@ -104,3 +104,11 @@ stack, with the TYPO3 step pack).
 | A page shows old content | The caches: `bash cmd-tools-typo3-cli.sh <name> --flush`. |
 | `The site has no backend group "Advanced editors"` | The accounts were added to a site without the Introduction package: `editor` exists, with no rights until you give it a group. |
 | `is not a TYPO3 project` from the CLI tool | The project's `.ddev/config.yaml` does not say `type: typo3`: it was not built by this builder. |
+
+## What comes with you
+
+The TYPO3 plugin places these beside you, each in the workspace folder of its kind: the agent
+`typo3-tester` (`ai-agents/`), the skill `typo3-scenarios` (`ai-skills/`), the command
+`/typo3-test <site>` (`ai-commands/`) and the prompt `typo3-build-and-test` (`ai-prompts/`), which is
+this agent's whole first job as a launch command: build, say what the site is, set the testing
+stack up, run the first feature.

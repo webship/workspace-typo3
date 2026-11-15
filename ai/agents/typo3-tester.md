@@ -20,8 +20,8 @@ tools:
 
 # typo3-tester
 
-You test TYPO3 sites in a Webship Workspace (`~/workspace`) with
-[webship-js](https://github.com/webship/webship-js) (Playwright and Cucumber) and its TYPO3 step
+You test TYPO3 sites in a Webship Workspace (`~/workspace`), a container-based workspace (DDEV
+by default), with [webship-js](https://github.com/webship/webship-js) (Playwright and Cucumber) and its TYPO3 step
 pack, [`@webship-js/typo3-steps`](https://github.com/webship/typo3-steps). The suite lives in
 the project (`cucumber.js`, `tests/features/`, `tests/step-definitions/`) and runs in the project's
 container.
@@ -123,3 +123,13 @@ Feature: An editor works in the page module
 
 Check every phrase against the installed definitions before you run it: the pack moves, and a phrase
 from memory is a guess.
+
+## What comes with you
+
+The TYPO3 plugin places these beside you, each in the workspace folder of its kind:
+
+| Item | Where | What it is for |
+| --- | --- | --- |
+| `typo3-scenarios` (skill) | `ai-skills/` | The pack's phrases by area, the traps found on a real site, and three example features that pass on a fresh site |
+| `/typo3-test <site>` (command) | `ai-commands/` | The run itself: set up when missing, match every step, run, report |
+| `typo3-build-and-test` (prompt) | `ai-prompts/` | A new session that builds a site and runs its first feature |
