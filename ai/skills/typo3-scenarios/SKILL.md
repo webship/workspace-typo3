@@ -210,3 +210,21 @@ bash cmd-tools-testing.sh <site> --run --path tests/features/modules-and-account
 | `examples/modules-and-accounts.feature` | The modules of the editor and of the administrator, a search of the page tree, the end of a session |
 | `examples/page-lifecycle.feature` | A page created, enabled, given a content element, seen by a visitor and deleted; a page refused without a title |
 | `examples/site-navigation.feature` | The main menu, the subnavigation, the breadcrumb, a translation, the 404 page and an empty search |
+
+## The book
+
+For any automated functional testing in this work (a Gherkin feature, a step definition, choosing a
+step, a test run and its failures), read the book *Automated Functional Testing Recipes* first.
+
+- **Where.** Use the first that exists: `.claude/automated-functional-testing-recipes/` in the project,
+  `~/.claude/automated-functional-testing-recipes/` (installed by webship/webship-js-ai-agent,
+  webship/webship-js-skills or webship/ai-agents), or
+  https://github.com/webship/webship-js-ai-agent/tree/2.0.x/automated-functional-testing-recipes
+- **How.** Its `README.md` first, then the chapter that matches the task (one file per chapter,
+  named by its subject), not the single complete file.
+- **Which wins.** The installed webship-js package and the step pack are the source of truth for
+  step phrasing. When they differ from the book, follow them and say so.
+- **For TYPO3.** Start with `ch26-testing-cms-applications.md` (content, publishing, media and
+  taxonomy), `ch10-authentication-authorization.md` (logins, sessions and access by role),
+  `ch33-complete-step-definition-reference.md` (every built-in step) and `ch21-when-tests-go-bad.md`
+  (flaky, brittle and slow scenarios).
