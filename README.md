@@ -116,7 +116,7 @@ letter, a digit and a sign: the setup stops when the workspace account's does no
 
 ```bash
 bash cmd-tools-typo3-cli.sh mysite                                    # version, address, sites, backend accounts
-bash cmd-tools-typo3-cli.sh mysite --run "extension:list --active"
+bash cmd-tools-typo3-cli.sh mysite --run "extension:list --all"
 bash cmd-tools-typo3-cli.sh mysite --run "list"                       # every command of the console
 bash cmd-tools-typo3-cli.sh mysite --flush                            # flush every cache
 bash cmd-tools-typo3-cli.sh mysite --update                           # Composer packages, extension setup, caches

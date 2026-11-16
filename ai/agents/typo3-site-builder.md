@@ -52,7 +52,7 @@ build stops: do not invent another password, ask for the setting to be changed.
 
 ```bash
 bash cmd-tools-typo3-cli.sh mysite                                  # what it is: version, address, sites, backend accounts
-bash cmd-tools-typo3-cli.sh mysite --run "extension:list --active"
+bash cmd-tools-typo3-cli.sh mysite --run "extension:list --all"
 bash cmd-tools-typo3-cli.sh mysite --run "upgrade:list"
 bash cmd-tools-typo3-cli.sh mysite --flush                          # every cache
 bash cmd-tools-typo3-cli.sh mysite --update                         # the Composer packages, the extension setup, the caches
