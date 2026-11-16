@@ -234,7 +234,7 @@ function typo3_cli_tool() {
   fi
 
   if [ ! "${RUN}" == '_none_' ] ; then
-    # One string on purpose: --run "extension:list --active" is a command and its arguments.
+    # One string on purpose: --run "extension:list --all" is a command and its arguments.
     ddev exec "vendor/bin/typo3 ${RUN}" ;
     exit $? ;
   fi

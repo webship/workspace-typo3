@@ -145,3 +145,22 @@ test('the first feature names no platform in a step, and no password', () => {
   assert.doesNotMatch(feature, /password "/);
   assert.doesNotMatch(feature, /user create|I register/i, 'a suite never creates an account');
 });
+
+test('every --run "extension:list …" example of the package uses an option the command has', () => {
+  // TYPO3 13.4: `extension:list [-a|--all] [-i|--inactive]`. It lists the active extensions by default;
+  // there is no --active option, and an example with it ends in an error.
+  const known = ['--all', '-a', '--inactive', '-i'];
+  const files = ['README.md', 'scripts/args/arg-typo3-cli.sh', 'scripts/functions/fun-typo3.sh',
+    ...fs.readdirSync(path.join(PKG, 'ai', 'agents')).map((f) => `ai/agents/${f}`)];
+  let examples = 0;
+  for (const rel of files) {
+    const text = fs.readFileSync(path.join(PKG, rel), 'utf8');
+    for (const m of text.matchAll(/extension:list((?: +-{1,2}[a-z-]+)*)/g)) {
+      examples += 1;
+      for (const option of m[1].trim().split(/ +/).filter(Boolean)) {
+        assert.ok(known.includes(option), `${rel}: extension:list has no ${option} option`);
+      }
+    }
+  }
+  assert.ok(examples >= 3, 'the help, the README and the agent each give the example');
+});

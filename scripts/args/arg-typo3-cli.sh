@@ -5,7 +5,7 @@ parser.add_argument('PROJECT_NAME',
                     help='The TYPO3 project in this workspace.')
 parser.add_argument('-r', '--run',
                     default="_none_",
-                    help='A typo3 console command to run in the project, without the leading typo3. Example: --run "extension:list --active"')
+                    help='A typo3 console command to run in the project, without the leading typo3. Example: --run "extension:list --all"')
 parser.add_argument('-u', '--update',
                     action='store_true',
                     default=False,
