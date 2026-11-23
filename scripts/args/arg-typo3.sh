@@ -2,7 +2,12 @@
 
 argparse "$@" <<ARGEOF || exit 1
 parser.add_argument('PROJECT_NAME',
-                    help='The name of the project: its folder, its DDEV project and its host name.')
+                    help='The name of the project: its folder, and its name on the container runtime (on DDEV its host name too).')
+parser.add_argument('--runtime',
+                    dest='RUNTIME',
+                    default="_none_",
+                    choices=['ddev', 'docker', 'podman', 'kubernetes', 'lando', 'docksal'],
+                    help='The container runtime to build on: ddev (the default, or container.runtime of settings.yml), docker (Docker Compose), podman, kubernetes, lando or docksal.')
 parser.add_argument('-v', '--version',
                     default="${site_version}",
                     help='The TYPO3 release to create the project from, as a Composer constraint of typo3/cms-base-distribution. Example: --version 13.4.20 [default %(default)s]')

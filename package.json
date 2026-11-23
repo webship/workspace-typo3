@@ -83,8 +83,10 @@
       ]
     },
     "features": [
-      "features/typo3.feature"
-    ]
+      "features/typo3.feature",
+      "features/typo3-runtimes.feature"
+    ],
+    "featuresSite": "cmd-typo3-project.sh ci-typo3 --install --add-users --runtime docker"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
