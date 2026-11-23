@@ -36,9 +36,27 @@ function set_typo3_users() {
   done
 }
 
-# Is this folder a TYPO3 project? Its DDEV project type says so.
+# The runtime of the project in this folder, or of a new build (--runtime, else the workspace's
+# setting, else DDEV). A core without the runtime layer has DDEV only.
+function typo3_runtime() {
+  if declare -f runtime_of > /dev/null ; then runtime_of ; else echo 'ddev' ; fi
+}
+
+# The address of the site in this folder: https://<name>.ddev.site on DDEV, http://127.0.0.1:<port> on
+# Docker Compose, Podman and Lando, the node's address and a port on Kubernetes, http://<name>.docksal.site
+# on Docksal. Asked after `ddev config`.
+function typo3_url() {
+  if declare -f rt_url > /dev/null ; then rt_url ; else echo "https://${PROJECT_NAME}.ddev.site" ; fi
+}
+
+# Is this folder a TYPO3 project? Its project type says so: on DDEV in .ddev/config.yaml, on another
+# runtime in the x-webship block, both read by the core's rt_is_platform.
 function typo3_is_project() {
   local project_path="$1";
+  if declare -f rt_is_platform > /dev/null ; then
+    rt_is_platform "${project_path}" typo3 ;
+    return $? ;
+  fi
   grep -qE '^type:[[:space:]]*"?typo3"?[[:space:]]*$' "${project_path}/.ddev/config.yaml" 2>/dev/null ;
 }
 
@@ -55,7 +73,7 @@ function typo3_enter_project() {
     return 1 ;
   fi
   if ! typo3_is_project "${project_path}" ; then
-    echo "${doc_name}/${PROJECT_NAME} is not a TYPO3 project (its .ddev/config.yaml does not say type: typo3)." ;
+    echo "${doc_name}/${PROJECT_NAME} is not a TYPO3 project (its project type is not typo3)." ;
     return 1 ;
   fi
   cd "${project_path}" || return 1 ;
@@ -84,7 +102,12 @@ function typo3_user_exists() {
 # Build a TYPO3 site from nothing: the container, the code, and with --install the site itself.
 function typo3_build() {
   trim_project_name ;
-  local base_url="https://${PROJECT_NAME}.ddev.site" ;
+  local base_url runtime ;
+  runtime="$(typo3_runtime)" ;
+  if [ "${RUNTIME:-_none_}" != '_none_' ] && [ "${RUNTIME}" != "${runtime}" ] ; then
+    echo "--runtime ${RUNTIME} needs a Webship Workspace with the container runtimes (webship/workspace#694): update the workspace, or build on DDEV." ;
+    exit 1 ;
+  fi
   local version="${VERSION:-${site_version:-^13.4}}" ;
   local php_version="${PHP_VERSION:-${site_php_version:-8.3}}" ;
 
@@ -97,6 +120,8 @@ function typo3_build() {
 
   ddev config --project-type=typo3 --docroot="${distribution_webroot}" --project-name=${PROJECT_NAME} \
     --php-version=${php_version} --nodejs-version=$(ddev_nodejs_version) --auto || exit 1 ;
+  # The address is the runtime's to say, once the project is configured: never a written ddev.site.
+  base_url="$(typo3_url)" ;
   ddev_up start -y || exit 1 ;
 
   ddev composer create-project "${project_template}:${version}" . --no-interaction \
@@ -104,7 +129,12 @@ function typo3_build() {
 
   if [ "${INSTALL}" == 'yes' ] ; then
     # The container's own database values, the same in every project: nothing personal is written.
-    typo3_cli setup --no-interaction --force --server-type=other \
+    # The web server of DDEV is its own nginx, with the rules of the project type (other). On another
+    # runtime it is Apache, and TYPO3's setup then writes the .htaccess of the docroot that routes
+    # every page of the site through index.php (apache).
+    local server_type='other' ;
+    [ "${runtime}" != 'ddev' ] && server_type='apache' ;
+    typo3_cli setup --no-interaction --force --server-type=${server_type} \
       --driver=mysqli --host=db --port=3306 --dbname=db --username=db --password=db \
       --admin-username="${account_name}" --admin-user-password="${account_pass}" --admin-email="${account_mail}" \
       --project-name="${doc_name} ${PROJECT_NAME}" \
@@ -251,7 +281,7 @@ function typo3_cli_tool() {
     set_typo3_users ;
     cancel_typo3_users ;
   else
-    echo "${doc_name}/${PROJECT_NAME}: $(typo3_cli --version 2>/dev/null | head -1) at https://${PROJECT_NAME}.ddev.site" ;
+    echo "${doc_name}/${PROJECT_NAME}: $(typo3_cli --version 2>/dev/null | head -1) at $(typo3_url)" ;
     if typo3_is_installed "$(pwd)" ; then
       echo "" ; echo "Sites:" ; typo3_cli site:list ;
       echo "" ; echo "Backend accounts:" ;

@@ -164,3 +164,120 @@ test('every --run "extension:list …" example of the package uses an option the
   }
   assert.ok(examples >= 3, 'the help, the README and the agent each give the example');
 });
+
+// ---- The runtimes: DDEV as before, and Docker Compose, Podman, Kubernetes, Lando and Docksal through the core's layer ----
+
+const ADDRESSES: Record<string, string> = {
+  docker: 'http://127.0.0.1:41234', podman: 'http://127.0.0.1:41234', lando: 'http://127.0.0.1:41234',
+  kubernetes: 'http://172.18.0.2:30080', docksal: 'http://site1.docksal.site',
+};
+
+/**
+ * Run the builder in a throwaway workspace with `ddev` replaced by a recorder, and the core's layer by stand-ins:
+ * `layer` is the runtime it answers with (runtime_of, rt_url), or '' for a core that has no layer yet.
+ */
+function build(layer: string, env: Record<string, string> = {}) {
+  const p = project('typo3');
+  fs.rmSync(p.dir, { recursive: true });
+  const log = path.join(p.root, 'ddev.log');
+  const address = ADDRESSES[layer] || '';
+  const prelude = [
+    `ddev() { echo "ddev $*" >> "${log}" ; return 0 ; }`,
+    'trim_project_name() { :; } ; drop_database() { :; } ; ddev_nodejs_version() { echo 24 ; } ; ddev_up() { ddev "$@" ; }',
+    layer ? `runtime_of() { echo "\${RUNTIME_ANSWER}" ; } ; rt_url() { [ "\${RUNTIME_ANSWER}" == ddev ] && echo "https://\${PROJECT_NAME}.ddev.site" || echo "${address}" ; }` : '',
+    `source ${FUNCTIONS}`,
+    'typo3_build',
+  ].join('\n');
+  const r = spawnSync('bash', ['-c', prelude], { encoding: 'utf8', input: '', env: { ...process.env, WORKSPACE_ROOT: p.root, WORKSPACE_SCRIPTS: p.scripts, doc_name: 'dev', PROJECT_NAME: 'site1',
+    INSTALL: 'yes', ADD_USERS: 'no', BARE: 'no', LAUNCH: 'no', VERSION: '^13.4', PHP_VERSION: '8.3', distribution_webroot: 'public', project_template: 'typo3/cms-base-distribution',
+    RUNTIME: '_none_', RUNTIME_ANSWER: layer || 'ddev', account_name: 'webmaster', account_pass: 'Change_Me.123123', account_mail: 'webmaster@example.com', ...env } });
+  const calls = fs.existsSync(log) ? fs.readFileSync(log, 'utf8').trim().split('\n').filter((c) => c.startsWith('ddev ')) : [];
+  return { r, calls, dir: path.join(p.root, 'dev', 'site1') };
+}
+
+test('on DDEV the build is what it was: the same commands with the layer and without it', () => {
+  const without = build('');
+  const withLayer = build('ddev');
+  for (const b of [without, withLayer]) {
+    assert.strictEqual(b.r.status, 0, b.r.stderr + b.r.stdout);
+    assert.match(b.r.stdout, /Go to https:\/\/site1\.ddev\.site\/typo3 and log in as webmaster/);
+  }
+  assert.deepStrictEqual(withLayer.calls, without.calls);
+  assert.strictEqual(without.calls[0], 'ddev config --project-type=typo3 --docroot=public --project-name=site1 --php-version=8.3 --nodejs-version=24 --auto');
+  assert.ok(without.calls.some((c) => c.includes('setup --no-interaction --force --server-type=other ')), 'DDEV\'s nginx has the rules: no .htaccess');
+  assert.ok(without.calls.includes('ddev composer create-project typo3/cms-base-distribution:^13.4 . --no-interaction'));
+});
+
+test('on Docker Compose, Podman, Kubernetes, Lando and Docksal the build runs the same commands, and says the runtime\'s address', () => {
+  const ddev = build('ddev').calls;
+  for (const runtime of Object.keys(ADDRESSES)) {
+    const address = ADDRESSES[runtime];
+    const b = build(runtime, { RUNTIME: runtime });
+    assert.strictEqual(b.r.status, 0, runtime + ': ' + b.r.stderr + b.r.stdout);
+    // TYPO3's own setup is given the stack's database (db/db/db on the host db, the same on every runtime) and
+    // picks the container's sendmail, which each runtime hands to its mail catcher. What differs is the web
+    // server: Apache there, so the setup writes the .htaccess of the docroot (apache, not DDEV's nginx: other).
+    assert.deepStrictEqual(b.calls, ddev.map((c) => c.replace('--server-type=other', '--server-type=apache')), runtime);
+    assert.ok(b.calls.some((c) => c.includes('setup --no-interaction --force --server-type=apache --driver=mysqli --host=db --port=3306 --dbname=db --username=db --password=db')), runtime);
+    assert.ok(!fs.existsSync(path.join(b.dir, '.ddev')), `${runtime}: nothing of DDEV's is written`);
+    assert.match(b.r.stdout, new RegExp(`Go to ${address.replace(/[.]/g, '\\.')}/typo3 and log in as webmaster`), runtime);
+    assert.doesNotMatch(b.r.stdout, /ddev\.site/, runtime);
+  }
+});
+
+test('--runtime on a workspace without the runtime layer is refused, never built on DDEV in silence', () => {
+  const b = build('', { RUNTIME: 'docker' });
+  assert.strictEqual(b.r.status, 1);
+  assert.match(b.r.stdout, /--runtime docker needs a Webship Workspace with the container runtimes/);
+  assert.deepStrictEqual(b.calls, []);
+  assert.ok(!fs.existsSync(b.dir), 'no folder was made');
+  assert.strictEqual(build('', { RUNTIME: 'ddev' }).r.status, 0);
+});
+
+test('the builder takes --runtime, with the runtimes of the core\'s own builders', () => {
+  const args = fs.readFileSync(path.join(PKG, 'scripts', 'args', 'arg-typo3.sh'), 'utf8');
+  assert.match(args, /parser\.add_argument\('--runtime',\s+dest='RUNTIME',\s+default="_none_",\s+choices=\['ddev', 'docker', 'podman', 'kubernetes', 'lando', 'docksal'\],/);
+});
+
+/** A site of another runtime: compose.yaml with its type, no .ddev folder. */
+function runtimeSite() {
+  const p = project('typo3');
+  fs.rmSync(path.join(p.dir, '.ddev'), { recursive: true });
+  fs.writeFileSync(path.join(p.dir, 'compose.yaml'), 'name: site1\nx-webship:\n  runtime: docker\n  type: typo3\n  port: 41234\n');
+  return p;
+}
+const LAYER = 'runtime_of() { echo docker ; } ; rt_is_platform() { grep -q "^  type: $2$" "$1/compose.yaml" 2>/dev/null ; } ; rt_url() { echo http://127.0.0.1:41234 ; } ; ';
+
+test('a site is known on every runtime: the layer reads its type', () => {
+  const rt = runtimeSite();
+  assert.strictEqual(bash(`${LAYER} typo3_is_project ${rt.dir}`).status, 0);
+  assert.notStrictEqual(bash(`typo3_is_project ${rt.dir}`).status, 0, 'an older core reads no compose.yaml');
+  assert.strictEqual(bash(`typo3_is_project ${project('typo3').dir}`).status, 0, 'DDEV as before');
+  assert.notStrictEqual(bash(`${LAYER} typo3_is_project ${project('drupal11').dir}`).status, 0);
+});
+
+test('the console tool and the test users work on a site of a runtime, and say its address', () => {
+  const rt = runtimeSite();
+  const log = path.join(rt.root, 'ddev.log');
+  const env = { WORKSPACE_ROOT: rt.root, doc_name: 'dev', PROJECT_NAME: 'site1', DDEV_LOG: log };
+  const add = bash(`${LAYER} set_typo3_users ; add_typo3_users`, env);
+  assert.strictEqual(add.status, 0, add.stdout + add.stderr);
+  assert.match(fs.readFileSync(log, 'utf8'), /backend:user:create --no-interaction --username=administrator/);
+  const what = bash(`${LAYER} trim_project_name() { :; } ; RUN=_none_ ; UPDATE=no ; ADD_USERS=no ; CANCEL_USERS=no ; typo3_cli_tool`, env);
+  assert.strictEqual(what.status, 0, what.stdout + what.stderr);
+  assert.match(what.stdout, /^dev\/site1: .* at http:\/\/127\.0\.0\.1:41234$/m);
+  assert.doesNotMatch(what.stdout, /ddev\.site/);
+});
+
+test('the feature of the runtimes drives a site of the platform, and names no platform in a step', () => {
+  const feature = fs.readFileSync(path.join(PKG, 'features', 'typo3-runtimes.feature'), 'utf8');
+  const scenarios = feature.split(/\n(?=  @needs-runtime-)/).slice(1);
+  assert.strictEqual(scenarios.length, 6);
+  for (const s of scenarios) assert.match(s, /^  @needs-runtime-(docker|kubernetes) @needs-platform-typo3\n  Scenario: /);
+  const steps = feature.split('\n').filter((l) => /^\s*(Given|When|Then|And|But) /.test(l));
+  for (const s of steps) assert.doesNotMatch(s, /typo3/i, s);
+  assert.doesNotMatch(feature, /ddev\.site|127\.0\.0\.1/);
+  const manifest = JSON.parse(fs.readFileSync(path.join(PKG, 'package.json'), 'utf8')).workspacePlugin;
+  assert.ok(manifest.features.includes('features/typo3-runtimes.feature'));
+  assert.match(manifest.featuresSite, /^cmd-typo3-project\.sh ci-typo3( [A-Za-z0-9._=-]+)* --runtime docker$/);
+});

@@ -4,8 +4,8 @@
 
 # Installed by the TYPO3 plugin (plugins.sh --install typo3); __WORKSPACE__ is the workspace it was installed into.
 #
-# Build a TYPO3 site in a container: TYPO3 13.4 LTS, or the release --version names, at
-# https://<name>.ddev.site. With --install the site is set up with the workspace account as its
+# Build a TYPO3 site in a container: TYPO3 13.4 LTS, or the release --version names, on DDEV (the default) at https://<name>.ddev.site, or
+# with --runtime docker, podman, kubernetes, lando or docksal at the address the build prints. With --install the site is set up with the workspace account as its
 # administrator and gets the official Introduction package (a site with pages and content); with
 # --add-users it also gets the default accounts, an administrator and an editor.
 

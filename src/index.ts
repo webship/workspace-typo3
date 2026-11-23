@@ -38,7 +38,7 @@ export function assistantContext(): string {
   return [
     'TYPO3 (a plugin, @webship.co/workspace-typo3): a TYPO3 site is built with',
     '`bash cmd-typo3-project.sh <name> --install --add-users` from a sites folder (dev, test, sandboxes, demos),',
-    'in a container like every other project, at https://<name>.ddev.site (the backend at /typo3); --install sets TYPO3 13.4 LTS up',
+    'in a container like every other project: on DDEV by default, at https://<name>.ddev.site, or with `--runtime docker|podman|kubernetes|lando|docksal` on that runtime, at the address the build prints, (the backend at /typo3); --install sets TYPO3 13.4 LTS up',
     'with the Introduction package (a site with pages and content), --bare leaves that package out.',
     '`bash cmd-tools-typo3-cli.sh <name>` says what the site is; `--run "<command>"` runs the typo3 console (vendor/bin/typo3) in it,',
     '`--update` updates the Composer packages, `--flush` flushes the caches, `--add-users` adds the default accounts (an administrator and an editor).',
