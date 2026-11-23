@@ -75,6 +75,7 @@ A workspace that knows none of this (Webship Workspace 1.0.8 and older) ignores 
 | `docs/plugin-items-pattern.md` | How a plugin carries its own commands and AI items, and how to prove it |
 | `src/index.ts` | `register(api)`: what the assistant is told about TYPO3 here |
 | `features/typo3.feature` | Scenarios for the dashboard's own browser suite |
+| `features/typo3-runtimes.feature` | The row, the test users and two pages of a site built on Docker Compose and on Kubernetes |
 
 The `workspacePlugin` block in `package.json` is the manifest the installer reads.
 
@@ -96,9 +97,10 @@ bash cmd-typo3-project.sh mysite --install --add-users
 | `--add-users` | With `--install`: add the default accounts, an administrator and an editor |
 | `--bare` | With `--install`: leave the Introduction package out (a backend, and no site or page yet) |
 | `--php-version <x>` | The PHP of the project container (`8.3`) |
+| `--runtime <name>` | The container runtime to build on: `ddev` (the default), `docker`, `kubernetes`, `podman`, `lando` or `docksal`. See [Runtimes](#runtimes) |
 | `--launch` | Open the site when it is ready |
 
-The site answers at `https://mysite.ddev.site`, the backend at `/typo3`. The build runs
+On DDEV the site answers at `https://mysite.ddev.site`, the backend at `/typo3`. The build runs
 `ddev config --project-type=typo3` with the docroot `public` and the Node.js of the workspace (24),
 creates the project with Composer in the container (`typo3/cms-base-distribution`), and sets it up
 with TYPO3's own `setup` command. The setup is given the container's database values
@@ -111,6 +113,60 @@ and points the search results at the templates of Indexed Search.
 
 TYPO3 asks for an administrator password of 8 characters or more, with an upper and a lower case
 letter, a digit and a sign: the setup stops when the workspace account's does not pass.
+
+
+### Runtimes
+
+```bash
+bash cmd-typo3-project.sh mysite --install --add-users                        # DDEV, the default
+bash cmd-typo3-project.sh mysite --install --add-users --runtime docker       # Docker Compose
+bash cmd-typo3-project.sh mysite --install --add-users --runtime kubernetes   # a Kubernetes cluster
+bash cmd-typo3-project.sh mysite --install --add-users --runtime lando        # Lando
+bash cmd-typo3-project.sh mysite --install --add-users --runtime docksal      # Docksal
+```
+
+Without `--runtime` a build takes `container.runtime` of the workspace's `settings.yml`, then DDEV.
+It needs a Webship Workspace with the container runtimes
+([webship/workspace#694](https://github.com/webship/workspace/issues/694)); on an older one the
+builder refuses `--runtime` and builds on DDEV only. Lando and Docksal need a Workspace whose runtime
+layer has them ([webship/workspace#729](https://github.com/webship/workspace/issues/729),
+[#730](https://github.com/webship/workspace/issues/730)).
+
+| | DDEV | Docker Compose | Kubernetes | Podman | Lando | Docksal |
+| --- | --- | --- | --- | --- | --- | --- |
+| Build with `--install --add-users` (the Introduction package) | Yes | Yes | Yes | Not yet run | Yes | Yes |
+| The pages of the site and the backend's login | Yes | Yes | Yes | Not yet run | Yes | Yes |
+| `cmd-tools-typo3-cli.sh`: status, `--run`, the accounts | Yes | Yes | Yes | Not yet run | Yes | Yes |
+| Test users, added and cancelled | Yes | Yes | Yes | Not yet run | Yes | Yes |
+| Mail caught by Mailpit (the backend's password reset) | Yes | Yes | Yes | Not yet run | Yes | Yes |
+| The testing setup and the first feature | Yes | Yes | Yes | Not yet run | Yes | Yes |
+| The step pack's examples (93 scenarios) | 91 of 93 (*) | 91 of 93 (*) | 91 of 93 (*) | Not yet run | 91 of 93 (*) | 91 of 93 (*) |
+| Export and import the database | Yes | Yes | Yes | Not yet run | Yes | Yes |
+| The row in the dashboard, and remove | Yes | Yes | Yes | Not yet run | Yes | Yes |
+
+"Yes" means it was run on a real site of that runtime. Podman runs the same code as Docker Compose
+and was not run yet. (*) The two are the ones the step pack's README names for a site of this plugin,
+on every runtime, DDEV included: the site name its own test site has, and the "Extensions" module,
+which TYPO3 shows a system maintainer (the plugin's `administrator` is not one).
+
+| Runtime | The site's address | What the project carries |
+| --- | --- | --- |
+| DDEV | `https://mysite.ddev.site` | `.ddev/config.yaml` |
+| Docker Compose | `http://127.0.0.1:<port>`, printed by the build | `compose.yaml`, `.webship/runtime/Dockerfile` |
+| Kubernetes | `http://<node address>:<port>`, printed by the build | The same, and `k8s/` (the namespace `ws-mysite`) |
+| Lando | `http://127.0.0.1:<port>`, printed by the build | `.lando.yml` (Lando's proxy stays off) |
+| Docksal | `http://mysite.docksal.site`, on Docksal's own proxy | `.docksal/docksal.env`, `.docksal/docksal.yml` |
+
+What differs on Docker Compose, Kubernetes, Lando and Docksal:
+
+- **The web server** is Apache, not DDEV's nginx: TYPO3's setup is told so (`--server-type=apache`) and writes the `.htaccess` of the docroot that routes every page through `index.php`. On DDEV it is told `other`, as before.
+- **The database** is the stack's own, `db`/`db`/`db` on the host `db`, which TYPO3's setup is given on every runtime: nothing else is written.
+- **Mail:** TYPO3's setup takes the container's `sendmail`, which each runtime hands to its mail catcher.
+- **HTTPS and a host name** are DDEV's: a runtime's address is plain HTTP.
+
+The same commands work on every runtime: `cmd-tools-typo3-cli.sh`, `cmd-tools-add-users.sh`,
+`cmd-tools-testing.sh`. The pattern is the Workspace's
+[`core/docs/plugins-on-runtimes.md`](https://github.com/webship/workspace/blob/1.0.x/core/docs/plugins-on-runtimes.md).
 
 ### Work on a site
 
